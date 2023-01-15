@@ -7,7 +7,7 @@
   &nbsp
   <a href="https://medium.com/@yiichenhi"><img alt="Medium" src="https://img.shields.io/badge/Medium-Yii%20Chen-black?style=flat&logo=Medium"/></a>
   &nbsp
-  <a href=""><img alt="" src="https://img.shields.io/github/followers/chyiiiiiiiiiiii?style=social"/></a>
+  <a href="https://github.com/chyiiiiiiiiiiii"><img alt="github" src="https://img.shields.io/github/followers/chyiiiiiiiiiiii?style=social"/></a>
 </p>
 
 [繁體中文](./README_cn.md)

@@ -1,0 +1,8 @@
+appId: com.example.cicdtest02
+---
+- launchApp
+- assertVisible: "0"
+- tapOn: "Increment"
+- assertVisible: "1"
+- tapOn: "Increment"
+- assertVisible: "2"

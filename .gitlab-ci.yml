@@ -1,0 +1,109 @@
+stages:
+  - test
+  - build
+  - deploy
+
+flutter_test:
+  stage: test
+  script:
+    - flutter test
+  tags:
+    - flutter
+
+maestro_test:
+  stage: test
+  variables:
+    IOS_SIMULATOR_ID: "CEFBBE3D-EC2D-4B35-9957-FABDB8B382FA"
+  before_script:
+    - cd scripts/
+  script:
+    - ./boot_simulator.sh $IOS_SIMULATOR_ID
+    - ./run_test.sh
+    - ./shutdown_simulator.sh $IOS_SIMULATOR_ID
+  after_script:
+    - cd ..
+  tags:
+    - flutter
+
+build_android:
+  stage: build
+  dependencies:
+    - flutter_test
+    - maestro_test
+  variables:
+    FINAL_EXPORT_PATH: "./build/app/outputs/apk/release"
+    FILE_NAME: "android-release.apk"
+  before_script:
+    - flutter packages get
+    - flutter clean
+  script:
+    - flutter build apk
+  after_script:
+    - mv $FINAL_EXPORT_PATH/app-release.apk ./$FILE_NAME
+  artifacts:
+    paths:
+      - ./$FILE_NAME
+  tags:
+    - flutter
+
+build_ios:
+  stage: build
+  dependencies:
+    - flutter_test
+    - maestro_test
+  variables:
+    FLUTTER_PROJECT_NAME: "cicdtest02"
+    WORKSPACE_PATH: "ios/Runner.xcworkspace"
+    ARCHIVE_PATH: "ios/RunnerArchive.xcarchive"
+    EXPORT_OPTIONS_PATH: "ios/ExportOptions.plist"
+    FINAL_EXPORT_PATH: "./build/ios"
+    FILE_NAME: "ios-release.ipa"
+  before_script:
+    - flutter packages get
+    - flutter clean
+  script:
+    - flutter build ios
+    - xcodebuild clean archive -workspace $WORKSPACE_PATH -scheme Runner -archivePath $ARCHIVE_PATH -destination "generic/platform=iOS"
+    - xcodebuild -exportArchive -archivePath $ARCHIVE_PATH -exportOptionsPlist $EXPORT_OPTIONS_PATH -exportPath $FINAL_EXPORT_PATH
+  after_script:
+    - mv $FINAL_EXPORT_PATH/$FLUTTER_PROJECT_NAME.ipa ./$FILE_NAME
+  artifacts:
+    paths:
+      - ./$FILE_NAME
+  tags:
+    - flutter
+
+deploy_android:
+  stage: deploy
+  dependencies:
+    - build_android
+  variables:
+    APP_CENTER_USER_NAME: "yiichen"
+    APP_CENTER_PROJECT_NAME: "Test-Android"
+    APP_CENTER_GROUP_NAME: "Collaborators"
+    FILE_PATH: "./android-release.apk"
+  before_script:
+    - appcenter login --token $APP_CENTER_API_TOKEN
+    - appcenter apps set-current $APP_CENTER_USER_NAME/$APP_CENTER_PROJECT_NAME
+  script:
+    - appcenter distribute release --file $FILE_PATH --group $APP_CENTER_GROUP_NAME
+  tags:
+    - flutter
+
+deploy_ios:
+  stage: deploy
+  dependencies:
+    - build_ios
+  variables:
+    APP_CENTER_USER_NAME: "yiichen"
+    APP_CENTER_PROJECT_NAME: "Test-iOS"
+    APP_CENTER_GROUP_NAME: "Heros"
+    FILE_PATH: "./ios-release.ipa"
+  before_script:
+    - rm .git/shallow
+    - appcenter login --token $APP_CENTER_API_TOKEN
+    - appcenter apps set-current $APP_CENTER_USER_NAME/$APP_CENTER_PROJECT_NAME
+  script:
+    - appcenter distribute release --file $FILE_PATH --group $APP_CENTER_GROUP_NAME
+  tags:
+    - flutter

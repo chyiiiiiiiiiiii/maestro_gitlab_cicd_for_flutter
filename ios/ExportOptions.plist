@@ -10,8 +10,6 @@
 	<string>ad-hoc</string>
 	<key>provisioningProfiles</key>
 	<dict>
-		<key>com.md.cicdtest02</key>
-		<string>MD AdHoc - Yii</string>
 	</dict>
 	<key>signingCertificate</key>
 	<string>Apple Distribution</string>
